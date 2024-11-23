@@ -6,10 +6,10 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK
 import android.graphics.PixelFormat
 import android.os.Build
 import android.os.IBinder
-import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.MotionEvent
@@ -80,9 +80,6 @@ class FloatingViewService : Service() {
 						// 드래그 처리
 						params.x = initialX + (event.rawX - initialTouchX).toInt()
 						params.y = initialY + (event.rawY - initialTouchY).toInt()
-						Log.d("testt", "event.rawX: ${event.rawX}, initialX: $initialX, initialWidth: $initialWidth")
-						Log.d("testt", "event.rawY: ${event.rawY}, initialY: $initialY, initialHeight: $initialHeight")
-
 						windowManager.updateViewLayout(floatingView, params)
 
 						return true
@@ -140,7 +137,7 @@ class FloatingViewService : Service() {
 			val channel = NotificationChannel(
 				"floating_view_channel",
 				"Floating View Service",
-				NotificationManager.IMPORTANCE_LOW
+				NotificationManager.IMPORTANCE_DEFAULT
 			)
 			val manager = getSystemService(NotificationManager::class.java)
 			manager?.createNotificationChannel(channel)
@@ -156,8 +153,12 @@ class FloatingViewService : Service() {
 			.setSmallIcon(R.drawable.ic_launcher_foreground)
 			.build()
 
-		startForeground(1, notification)
-
+		// Android 14 이상에서는 foregroundServiceType 지정
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+			startForeground(1, notification, FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK)
+		} else {
+			startForeground(1, notification)
+		}
 		return START_STICKY
 	}
 
