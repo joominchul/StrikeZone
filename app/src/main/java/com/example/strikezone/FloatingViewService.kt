@@ -117,12 +117,18 @@ class FloatingViewService : Service() {
 				return false
 			}
 		})
+
+		floatingView.findViewById<View>(R.id.floating_close).setOnClickListener {
+			MainActivity.serviceStart.value = false
+			stopSelf()
+		}
 	}
 
 	override fun onDestroy() {
-		super.onDestroy()
+
 		saveLastPosition() // 서비스 종료 시 마지막 위치 저장
 		windowManager.removeView(floatingView)
+		super.onDestroy()
 	}
 
 	override fun onBind(intent: Intent?): IBinder? {

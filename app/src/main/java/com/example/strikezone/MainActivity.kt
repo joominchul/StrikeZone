@@ -8,11 +8,14 @@ import android.provider.Settings
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Observer
 import com.example.strikezone.databinding.ActivityMainBinding
 
 
 class MainActivity : AppCompatActivity() {
-	private var serviceStart = false
+
 	private lateinit var binding: ActivityMainBinding
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
@@ -28,8 +31,9 @@ class MainActivity : AppCompatActivity() {
 			val REQUEST_CODE_OVERLAY = 10
 			startActivityForResult(intent, REQUEST_CODE_OVERLAY)
 		}
+		serviceStartObserve()
 		binding.button.setOnClickListener {
-			if (!serviceStart) {
+			if (!serviceStart.value!!) {
 				// Check for foreground service permission
 				if (ContextCompat.checkSelfPermission(
 						this,
@@ -72,18 +76,28 @@ class MainActivity : AppCompatActivity() {
 	private fun startFloatingViewService() {
 		val intent = Intent(this, FloatingViewService::class.java)
 		startService(intent)
-		binding.button.text = "stop"
-		serviceStart = true
+		serviceStart.value = true
 	}
 
 	private fun stopFloatingViewService() {
 		val intent = Intent(this, FloatingViewService::class.java)
 		stopService(intent)
-		binding.button.text = "start"
-		serviceStart = false
+		serviceStart.value = false
 	}
 
 	companion object {
 		private const val REQUEST_CODE_FOREGROUND_SERVICE = 1001
+		var serviceStart = MutableLiveData<Boolean>(false)
+	}
+
+	private fun serviceStartObserve(){
+		serviceStart.observe(this, Observer {
+			if (it){
+				binding.button.text = "stop"
+			}
+			else{
+				binding.button.text = "start"
+			}
+		})
 	}
 }

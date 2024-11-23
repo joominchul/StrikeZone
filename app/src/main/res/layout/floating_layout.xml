@@ -16,5 +16,14 @@
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_margin="10dp"/>
 
+    <TextView
+        android:id="@+id/floating_close"
+        android:layout_width="10dp"
+        android:layout_height="10dp"
+        android:background="@drawable/close"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"/>
+
+
 </androidx.constraintlayout.widget.ConstraintLayout>
 
