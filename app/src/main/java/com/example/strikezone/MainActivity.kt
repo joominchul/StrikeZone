@@ -20,8 +20,15 @@ import com.example.strikezone.databinding.ActivityMainBinding
 
 
 class MainActivity : AppCompatActivity() {
-
+	companion object {
+		private const val REQUEST_CODE_FOREGROUND_SERVICE = 1001
+		var serviceStart = MutableLiveData<Boolean>(false)
+	}
 	private lateinit var binding: ActivityMainBinding
+	//다른 앱 위에 그리기 권한
+	var overlay = MutableLiveData(false)
+	//알림 권한
+	var notification = MutableLiveData(false)
 	//권한 요청
 	// Activity Result API를 위한 ActivityResultLauncher 생성
 	private val requestOverlayPermissionLauncher =
@@ -41,6 +48,7 @@ class MainActivity : AppCompatActivity() {
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
 		binding = ActivityMainBinding.inflate(layoutInflater)
+		binding.main = this
 		val view = binding.root
 		setContentView(view)
 
@@ -72,6 +80,23 @@ class MainActivity : AppCompatActivity() {
 		}
 	}
 
+	override fun onResume() {
+		super.onResume()
+		//권한들 여부 확인
+		permissionObserve()
+		overlay.value = Settings.canDrawOverlays(this)
+		notification.value = NotificationManagerCompat.from(this).areNotificationsEnabled()
+	}
+
+	private fun permissionObserve(){
+		overlay.observe(this, Observer {
+			binding.invalidateAll()
+		})
+		notification.observe(this, Observer {
+			binding.invalidateAll()
+		})
+	}
+
 	override fun onRequestPermissionsResult(
 		requestCode: Int,
 		permissions: Array<out String>,
@@ -101,11 +126,6 @@ class MainActivity : AppCompatActivity() {
 		serviceStart.value = false
 	}
 
-	companion object {
-		private const val REQUEST_CODE_FOREGROUND_SERVICE = 1001
-		var serviceStart = MutableLiveData<Boolean>(false)
-	}
-
 	private fun serviceStartObserve(){
 		serviceStart.observe(this, Observer {
 			if (it){
@@ -121,7 +141,7 @@ class MainActivity : AppCompatActivity() {
 		if (!Settings.canDrawOverlays(this)) {
 			//사용자 다른 앱 위에 표시 요청
 			AlertDialog.Builder(this).setTitle("다른 앱 위에 표시 권한 요청")
-				.setMessage("플로팅 뷰를 사용하려면 다른 앱 위에 표시 권한이 필요합니다.")
+				.setMessage("스트라이크 존을 사용하려면 다른 앱 위에 표시 권한이 필요합니다.")
 				.setPositiveButton("허용"){ _, _ ->
 					val intent = Intent(
 						Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
@@ -142,7 +162,7 @@ class MainActivity : AppCompatActivity() {
 			// 사용자에게 알림 권한을 허용하도록 요청
 			AlertDialog.Builder(this)
 				.setTitle("알림 권한")
-				.setMessage("플로팅 뷰가 실행 중인지 알림을 통해 확인할 수 있습니다.\n알림 권한을 허용하시겠습니까?")
+				.setMessage("스트라이크 존이 실행 중인지 알림을 통해 확인할 수 있습니다.\n알림 권한을 허용하시겠습니까?")
 				.setPositiveButton("허용") { _, _ ->
 					// 앱 설정 화면으로 이동
 					val intent = Intent()
