@@ -31,7 +31,7 @@ class FloatingViewService : Service() {
 		windowManager = getSystemService(WINDOW_SERVICE) as WindowManager
 
 		// 플로팅 뷰 초기화
-		floatingView = LayoutInflater.from(this).inflate(R.layout.floating_layout, null)
+		floatingView = LayoutInflater.from(this).inflate(R.layout.floating_layout, null, false)
 
 		// WindowManager.LayoutParams 설정
 		params = WindowManager.LayoutParams(
@@ -67,8 +67,9 @@ class FloatingViewService : Service() {
 			override fun onTouch(v: View, event: MotionEvent): Boolean {
 				when (event.action) {
 					MotionEvent.ACTION_DOWN -> {
-						initialX = if(params.x>=0) params.x else 0
-						initialY = if(params.y>=0) params.y else 0
+						v.performClick()
+						initialX = if (params.x >= 0) params.x else 0
+						initialY = if (params.y >= 0) params.y else 0
 						initialTouchX = event.rawX
 						initialTouchY = event.rawY
 						initialWidth = params.width
@@ -88,32 +89,44 @@ class FloatingViewService : Service() {
 				return false
 			}
 		})
+		//플로팅 뷰 크기 조절
+		floatingView.findViewById<TextView>(R.id.floating_text).apply {
+			var initialWidth = 100
+			var initialHeight = 100
+			var initialTouchX = 0f
+			var initialTouchY = 0f
 
-		floatingView.findViewById<TextView>(R.id.floating_text).setOnTouchListener(object : View.OnTouchListener{
-			private var initialWidth = 100
-			private var initialHeight = 100
-			private var initialTouchX = 0f
-			private var initialTouchY = 0f
-			override fun onTouch(view: View, motionEvent: MotionEvent): Boolean {
-				when(motionEvent.action){
+			setOnTouchListener { view, motionEvent ->
+				when (motionEvent.action) {
 					MotionEvent.ACTION_DOWN -> {
+						view.performClick() // 접근성을 위해 performClick() 호출
 						initialTouchX = motionEvent.rawX
 						initialTouchY = motionEvent.rawY
 						initialWidth = params.width
 						initialHeight = params.height
-						return true
+						true // 이벤트 처리 완료
 					}
-					MotionEvent.ACTION_UP -> {
+
+					MotionEvent.ACTION_MOVE -> {
+						// ACTION_MOVE 이벤트 처리 추가: 드래그 중 크기 조정
 						params.width = initialWidth + (motionEvent.rawX - initialTouchX).toInt()
 						params.height = initialHeight + (motionEvent.rawY - initialTouchY).toInt()
 						windowManager.updateViewLayout(floatingView, params)
-						return true
+						true // 이벤트 처리 완료
 					}
 
+					MotionEvent.ACTION_UP -> {
+						// ACTION_UP 이벤트 처리: 최종 크기 조정
+						params.width = initialWidth + (motionEvent.rawX - initialTouchX).toInt()
+						params.height = initialHeight + (motionEvent.rawY - initialTouchY).toInt()
+						windowManager.updateViewLayout(floatingView, params)
+						true // 이벤트 처리 완료
+					}
+
+					else -> false // 다른 이벤트는 무시
 				}
-				return false
 			}
-		})
+		}
 
 		floatingView.findViewById<View>(R.id.floating_close).setOnClickListener {
 			MainActivity.serviceStart.value = false

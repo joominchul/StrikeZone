@@ -1,6 +1,5 @@
 package com.example.strikezone
 
-import android.app.Activity
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
