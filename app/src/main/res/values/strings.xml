@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">StrikeZone</string>
+    <string name="app_name">스트라이크 존</string>
     <string name="strikezone">스트라이크 존 설명</string>
     <string name="explain">
         아래 start 버튼을 클릭 시 스트라이크 존이 생성됩니다.
